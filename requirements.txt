@@ -1,0 +1,26 @@
+flask==3.0.2
+yfinance==0.2.36
+python-binance==1.0.19
+pandas==2.2.1
+numpy==1.26.4
+scikit-learn==1.4.0
+transformers==4.38.2
+torch==2.2.1
+requests==2.31.0
+python-dotenv==1.0.1
+flask-socketio==5.3.6
+newsapi-python==0.2.7
+ta==0.11.0  # Technical analysis library
+datasets==2.18.0  # Do obsługi zbiorów danych
+accelerate==0.27.2  # Do przyspieszenia treningu
+evaluate==0.4.1  # Do ewaluacji modelu
+tqdm==4.67.1  # Do wyświetlania postępu
+wandb==0.16.3  # Opcjonalnie, do monitorowania treningu 
+redis==5.0.4  # Do cache'owania newsów i danych rynkowych
+matplotlib==3.8.4  # Do generowania wykresów
+plotly==5.22.0  # Do interaktywnych wykresów
+pytest==8.2.1  # Do testów jednostkowych
+flask-testing==0.8.1  # Do testów integracyjnych Flask
+sentry-sdk==2.5.1  # Do monitoringu i raportowania błędów 
+joblib==1.4.2
+ratelimit==2.2.1

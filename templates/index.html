@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Market Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+
+
+        :root[data-theme="light"] {
+            --primary-color: #0093e9;
+            --primary-gradient: linear-gradient(135deg, #0093e9 0%, #80d0c7 100%);
+            --secondary-color: #80d0c7;
+            --accent-color: #f6f6f6;
+            --background-color: #f6f6f6;
+            --chat-bg: rgba(255,255,255,0.98);
+            --user-message-bg: linear-gradient(135deg, #0093e9 0%, #80d0c7 100%);
+            --bot-message-bg: rgba(240,240,240,0.95);
+            --text-color: #222;
+            --border-color: rgba(0,147,233,0.18);
+            --shadow-color: rgba(0,147,233,0.10);
+            --glass-bg: rgba(0,147,233,0.06);
+            --glass-border: rgba(0,147,233,0.12);
+        }
+
+        :root[data-theme="dark"] {
+            --primary-color: #00b4d8;
+            --primary-gradient: linear-gradient(135deg, #0a192f 0%, #00b4d8 100%);
+            --secondary-color: #0077b6;
+            --accent-color: #1a1a2e;
+            --background-color: #0a192f;
+            --chat-bg: rgba(10, 25, 47, 0.98);
+            --user-message-bg: linear-gradient(135deg, #0077b6 0%, #00b4d8 100%);
+            --bot-message-bg: rgba(20, 40, 60, 0.95);
+            --text-color: #e0e0e0;
+            --border-color: rgba(0, 180, 216, 0.25);
+            --shadow-color: rgba(0, 180, 216, 0.25);
+            --glass-bg: rgba(0, 180, 216, 0.10);
+            --glass-border: rgba(0, 180, 216, 0.18);
+        }
+
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+
+
+        body {
+            background: var(--background-color);
+            background-image:
+                linear-gradient(120deg, var(--primary-gradient)),
+                radial-gradient(circle at 20% 80%, var(--accent-color) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, var(--primary-color) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, var(--secondary-color) 0%, transparent 50%);
+            background-size: cover, 400px 400px, 300px 300px, 200px 200px;
+            background-position: center, 0 0, 100px 100px, 50px 50px;
+            background-attachment: fixed;
+            background-blend-mode: multiply, lighten, normal;
+            color: var(--text-color);
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+        }
+
+
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background-image:
+                radial-gradient(60px 60px at 10% 80%, var(--accent-color) 60%, transparent 100%),
+                radial-gradient(80px 80px at 80% 10%, var(--primary-color) 60%, transparent 100%),
+                radial-gradient(40px 40px at 40% 40%, var(--secondary-color) 60%, transparent 100%),
+                radial-gradient(30px 30px at 70% 70%, var(--primary-color) 40%, transparent 100%),
+                radial-gradient(20px 20px at 90% 90%, var(--accent-color) 40%, transparent 100%);
+            background-repeat: no-repeat;
+            background-size: 400px 400px, 300px 300px, 200px 200px, 150px 150px, 100px 100px;
+            opacity: 0.22;
+            z-index: -1;
+            animation: sparkle 24s linear infinite;
+        }
+
+        @keyframes sparkle {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-100px); }
+        }
+
+
+        .theme-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            cursor: pointer;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            padding: 12px;
+            font-size: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px var(--shadow-color);
+        }
+
+        .theme-switch:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 12px 40px var(--shadow-color);
+        }
+
+
+        .chat-container {
+            max-width: 800px;
+            margin: 80px auto 20px auto;
+            background: var(--chat-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 
+                0 20px 60px var(--shadow-color),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            min-height: 75vh;
+            position: relative;
+            overflow: hidden;
+            animation: slideInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .chat-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--primary-gradient);
+            opacity: 0.5;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        .chat-header {
+            padding: 32px 32px 16px 32px;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .chat-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+
+        .messages {
+            height: 500px;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+            gap: 16px;
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 4px;
+        }
+
+        /* Enhanced Message Bubbles */
+        .message {
+            margin: 0;
+            padding: 16px 20px;
+            border-radius: 20px;
+            max-width: 85%;
+            word-break: break-word;
+            font-size: 1rem;
+            line-height: 1.5;
+            position: relative;
+            animation: messageSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .user-message {
+            background: var(--user-message-bg);
+            margin-left: auto;
+            color: white;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-message::before {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid var(--primary-color);
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+        }
+
+        .bot-message {
+            background: var(--bot-message-bg);
+            margin-right: auto;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px var(--shadow-color);
+            position: relative;
+        }
+
+        .bot-message::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-right: 8px solid var(--border-color);
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+        }
+
+        /* Enhanced Input Container */
+        .input-container {
+            display: flex;
+            padding: 24px 32px;
+            border-top: 1px solid var(--border-color);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 0 0 24px 24px;
+            gap: 12px;
+        }
+
+        /* Enhanced Input Field */
+        input {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            font-size: 1rem;
+            background: var(--chat-bg);
+            color: var(--text-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
+        }
+
+        input::placeholder {
+            color: var(--text-color);
+            opacity: 0.6;
+        }
+
+        /* Enhanced Buttons */
+        button {
+            padding: 16px 24px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Enhanced Quick Commands */
+        .quick-commands {
+            text-align: center;
+            margin: 16px 0;
+            padding: 0 32px;
+        }
+
+        .quick-commands button {
+            margin: 0 6px;
+            padding: 10px 18px;
+            font-size: 0.9rem;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            color: var(--primary-color);
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .quick-commands button:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Enhanced Clear Chat Button */
+        .clear-chat-btn {
+            position: fixed;
+            left: 20px;
+            top: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            padding: 12px 20px;
+            font-size: 16px;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px var(--shadow-color);
+            font-weight: 600;
+        }
+
+        .clear-chat-btn:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 12px 40px var(--shadow-color);
+        }
+
+        /* Enhanced Current Symbol Display */
+        .current-symbol {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 8px 0;
+            padding: 8px;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Enhanced Message Styling */
+        .message pre {
+            margin: 0;
+            white-space: pre-wrap;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            line-height: 1.6;
+        }
+
+        .bot-message strong {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .bot-message .section-title {
+            font-weight: 800;
+            color: var(--secondary-color);
+            margin-top: 12px;
+            display: block;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Enhanced History Bar */
+        #historyBar {
+            text-align: center;
+            margin: 16px 32px;
+            padding: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+        }
+
+        #historyBar button {
+            margin: 4px 6px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--primary-color);
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #historyBar button:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Enhanced Indicators Section */
+        .indicators-section {
+            text-align: center;
+            margin: 16px 32px;
+            padding: 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            font-size: 0.95rem;
+        }
+
+        .indicators-section span {
+            margin: 0 8px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .indicators-section span:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Enhanced Commands Hint */
+        #commandsHint {
+            text-align: center;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin: 16px 32px;
+            padding: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+        }
+
+        /* Loading Animation */
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+        /* Enhanced Time Stamps */
+        .message-time {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* Enhanced Warning Messages */
+        .warning-message {
+            color: #ef4444;
+            font-weight: 700;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #ef4444;
+        }
+
+        /* Enhanced Download Buttons */
+        .download-btn {
+            margin: 8px 8px 0 0;
+            padding: 8px 16px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--primary-color);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Enhanced Notes Section */
+        .notes-section {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--glass-bg);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .notes-section textarea {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            background: var(--chat-bg);
+            color: var(--text-color);
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .chat-container {
+                margin: 60px 16px 20px 16px;
+                border-radius: 16px;
+            }
+            
+            .chat-header {
+                font-size: 1.5rem;
+                padding: 24px 24px 12px 24px;
+            }
+            
+            .input-container {
+                padding: 16px 24px;
+            }
+            
+            .quick-commands button {
+                margin: 4px;
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .theme-switch, .clear-chat-btn {
+                padding: 8px;
+                font-size: 16px;
+            }
+        }
+
+        /* Smooth scrolling for all elements */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Enhanced focus states for accessibility */
+        button:focus, input:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-anim" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-2;pointer-events:none;"></canvas>
+    <div class="theme-switch" onclick="toggleTheme()">
+        <span id="theme-icon">🌙</span>
+    </div>
+    <button class="clear-chat-btn" onclick="clearChat()">Clear Chat</button>
+    <div class="chat-container">
+        <div class="chat-header">
+            AI Market Assistant
+        </div>
+        <div id="currentSymbol" class="current-symbol" style="display:none;"></div>
+        <!-- Analysis history -->
+        <div id="historyBar" style="text-align:center; margin-bottom:8px; display:none;">
+            <span id="historyLabel" style="font-size:0.98em; color:var(--primary-color); font-weight:bold;">History:</span>
+            <span id="historyList"></span>
+        </div>
+        <div class="messages" id="messages"></div>
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Enter stock symbol (e.g. NVDA), or type 'plot', 'reset', or 'help'...">
+            <button onclick="sendMessage()" id="sendBtn">Send</button>
+        </div>
+        <div class="indicators-section">
+            <span style="font-weight:bold; color:var(--primary-color);">Indicators:</span>
+            <span title="Daily return (percentage change of closing price)">Returns</span>
+            <span title="Change in trading volume compared to previous day">Volume Change</span>
+            <span title="Relative Strength Index (momentum oscillator, overbought/oversold)">RSI</span>
+            <span title="MACD (trend-following momentum indicator)">MACD</span>
+            <span title="Simple Moving Average (5 days)">SMA 5</span>
+            <span title="Simple Moving Average (20 days)">SMA 20</span>
+            <span title="Bollinger Bands Middle (volatility measure)">Volatility</span>
+            <span title="Exponential Moving Average (trend direction)">Trend</span>
+            <span title="Stochastic RSI (momentum indicator)">Momentum</span>
+        </div>
+        <div class="quick-commands">
+            <button onclick="quickCommand('plot')" title="Show price chart for current symbol" id="btnPlot">Plot</button>
+            <button onclick="quickCommand('reset')" title="Reset and change the current symbol" id="btnReset">Reset</button>
+            <button onclick="quickCommand('retrain')" title="Retrain the model for the current symbol" id="btnRetrain">Retrain</button>
+            <button onclick="quickCommand('help')" title="Show all available commands" id="btnHelp">Help</button>
+        </div>
+        <div id="commandsHint" style="text-align:center; color:var(--text-color); font-size:0.95em; opacity:0.7; margin-bottom:10px;">
+            Commands: Enter stock symbol, 'plot' for chart, 'reset' to change symbol, 'help' for all commands
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+    // --- ANIMATED BACKGROUND ---
+    function randomColor(theme) {
+        if (theme === 'dark') {
+            const colors = ['#00b4d8', '#0077b6', '#48cae4', '#1a1a2e'];
+            return colors[Math.floor(Math.random()*colors.length)];
+        } else {
+            const colors = ['#0093e9', '#80d0c7', '#f6f6f6', '#b2f7ef'];
+            return colors[Math.floor(Math.random()*colors.length)];
+        }
+    }
+    function resizeCanvas() {
+        const canvas = document.getElementById('bg-anim');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    document.addEventListener('DOMContentLoaded', function() {
+        resizeCanvas();
+        const canvas = document.getElementById('bg-anim');
+        const ctx = canvas.getContext('2d');
+        const theme = document.documentElement.getAttribute('data-theme') || 'light';
+        let circles = [];
+        for(let i=0;i<18;i++){
+            circles.push({
+                x: Math.random()*canvas.width,
+                y: Math.random()*canvas.height,
+                r: 40+Math.random()*60,
+                dx: (Math.random()-0.5)*0.7,
+                dy: (Math.random()-0.5)*0.7,
+                color: randomColor(theme),
+                alpha: 0.18+Math.random()*0.22
+            });
+        }
+        function animate() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            for(let c of circles){
+                ctx.save();
+                ctx.globalAlpha = c.alpha;
+                ctx.beginPath();
+                ctx.arc(c.x,c.y,c.r,0,2*Math.PI);
+                ctx.fillStyle = c.color;
+                ctx.shadowColor = c.color;
+                ctx.shadowBlur = 30;
+                ctx.fill();
+                ctx.restore();
+                c.x += c.dx;
+                c.y += c.dy;
+                if(c.x<0||c.x>canvas.width) c.dx*=-1;
+                if(c.y<0||c.y>canvas.height) c.dy*=-1;
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+        // Theme change support
+        window.setTheme = function(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            for(let c of circles){c.color = randomColor(theme);}
+        }
+    });
+        // Theme logic
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('theme-icon').textContent = '☀️';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.getElementById('theme-icon').textContent = '🌙';
+            }
+            localStorage.setItem('theme', theme);
+        }
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        }
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                setTheme('dark');
+            } else {
+                setTheme('light');
+            }
+        })();
+
+        let lastUserMessage = "";
+        let currentSymbol = "";
+        let lastPredictionText = "";
+        let lastPredictionId = 0;
+        let historySymbols = [];
+
+        // Chat logic
+        let socket, messages, messageInput;
+
+        window.addEventListener('DOMContentLoaded', function() {
+            // Initialize DOM references here to ensure elements exist
+            messages = document.getElementById('messages');
+            messageInput = document.getElementById('messageInput');
+            socket = io();
+
+            addMessage("Welcome! Enter a stock symbol (e.g. NVDA), or type 'plot', 'reset', or 'help'.", 'bot');
+            messageInput.focus();
+            Object.keys(localStorage).forEach(function(key) {
+                if (key.startsWith('note_pred')) {
+                    const predId = key.replace('note_', '');
+                    const note = localStorage.getItem(key);
+                    const display = document.getElementById('note_display_' + predId);
+                    if (display) display.textContent = "Note: " + note;
+                }
+            });
+
+            socket.on('connect', () => {});
+
+            socket.on('message', function(data) {
+                const match = data.response.match(/Analyzing symbol ([A-Z0-9]+)/i);
+                if (match) updateCurrentSymbol(match[1]);
+                if (data.response.includes("Symbol reset")) updateCurrentSymbol("");
+                addMessage(data.response, 'bot');
+            });
+
+            socket.on('plot', function(data) {
+                const div = document.createElement('div');
+                div.className = 'message bot-message';
+                div.innerHTML = `<img src="data:image/png;base64,${data.image}" style="max-width:100%;border-radius:8px;margin:10px 0;" />`;
+                messages.appendChild(div);
+                messages.scrollTo({ top: messages.scrollHeight, behavior: 'smooth' });
+            });
+
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                } else if (e.key === 'ArrowUp' && !messageInput.value) {
+                    messageInput.value = lastUserMessage;
+                }
+            });
+        });
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                addMessage(message, 'user');
+                lastUserMessage = message;
+                showLoader();
+                socket.emit('message', message);
+                messageInput.value = '';
+                messageInput.focus();
+            }
+        }
+
+        function quickCommand(cmd) {
+            messageInput.value = cmd;
+            sendMessage();
+        }
+
+        function clearChat() {
+            messages.innerHTML = '';
+            document.getElementById('currentSymbol').style.display = 'none';
+            messageInput.focus();
+            addMessage("Welcome! Enter a stock symbol (e.g. NVDA), or type 'plot', 'reset', or 'help'.", 'bot');
+        }
+
+        function addMessage(text, type = 'bot') {
+            hideLoader();
+            const div = document.createElement('div');
+            div.className = `message ${type}-message`;
+
+            // Format bot message with section titles and bold headers
+            let isPrediction = false;
+            let confidenceValue = null;
+            if (type === 'bot') {
+                text = text
+                    .replace(/^Prediction:/m, '<span class="section-title">Prediction:</span>')
+                    .replace(/^Model Accuracy:/m, '<span class="section-title">Model Accuracy:</span>')
+                    .replace(/^Detailed Analysis:/m, '<span class="section-title">Detailed Analysis:</span>')
+                    .replace(/^Plot generated\./m, '<span class="section-title">Plot generated.</span>')
+                    .replace(/^You can type 'plot'/m, '<span class="section-title">Next steps:</span>');
+                // Detect if this is a prediction message
+                if (text.includes("Prediction:") && text.includes("Detailed Analysis:")) {
+                    isPrediction = true;
+                    // Try to extract confidence value
+                    const confMatch = text.match(/Confidence:\s*([\d.]+)%/i);
+                    if (confMatch) {
+                        confidenceValue = parseFloat(confMatch[1]);
+                    }
+                }
+            }
+
+            const pre = document.createElement('pre');
+            pre.innerHTML = text;
+            div.appendChild(pre);
+
+            // Add warning if confidence < 50%
+            if (isPrediction && confidenceValue !== null && confidenceValue < 50) {
+                const warn = document.createElement('div');
+                warn.className = 'warning-message';
+                warn.textContent = "⚠️ Prediction is uncertain, use with caution.";
+                div.appendChild(warn);
+            }
+
+            // Add time with enhanced styling
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.style.textAlign = type === 'user' ? 'right' : 'left';
+            timeDiv.innerText = new Date().toLocaleTimeString();
+            div.appendChild(timeDiv);
+
+            // --- Download Prediction Button & Notes & Export ---
+            if (isPrediction) {
+                lastPredictionId += 1;
+                const predId = "pred" + lastPredictionId;
+                lastPredictionText = pre.innerText;
+
+                // Download as TXT
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = "📥 Download Prediction";
+                downloadBtn.className = 'download-btn';
+                downloadBtn.onclick = function() {
+                    const blob = new Blob([lastPredictionText], { type: "text/plain" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `prediction_${currentSymbol || 'symbol'}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+                };
+                div.appendChild(downloadBtn);
+
+                // Export as PDF
+                const pdfBtn = document.createElement('button');
+                pdfBtn.textContent = "📄 Export as PDF";
+                pdfBtn.className = 'download-btn';
+                pdfBtn.onclick = function() {
+                    exportPredictionAsPDF(lastPredictionText, currentSymbol || 'symbol');
+                };
+                div.appendChild(pdfBtn);
+
+                // Export as CSV
+                const csvBtn = document.createElement('button');
+                csvBtn.textContent = "📊 Export as CSV";
+                csvBtn.className = 'download-btn';
+                csvBtn.onclick = function() {
+                    exportPredictionAsCSV(lastPredictionText, currentSymbol || 'symbol');
+                };
+                div.appendChild(csvBtn);
+
+                // Notes with enhanced styling
+                const noteDiv = document.createElement('div');
+                noteDiv.className = 'notes-section';
+                noteDiv.innerHTML = `
+                    <textarea id="note_${predId}" rows="2" placeholder="Add note to this prediction..." style="font-family: inherit;"></textarea>
+                    <button style="margin-top:8px;" onclick="saveNote('${predId}')">💾 Save note</button>
+                    <div id="note_display_${predId}" style="margin-top:8px;font-size:0.95em;color:var(--secondary-color);"></div>
+                `;
+                div.appendChild(noteDiv);
+            }
+
+            // Scroll only if user is at the bottom
+            const isAtBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 50;
+
+            messages.appendChild(div);
+            if (isAtBottom) {
+                messages.scrollTo({ top: messages.scrollHeight, behavior: 'smooth' });
+            }
+        }
+
+        function showLoader() {
+            if (!document.getElementById('loader-msg')) {
+                const div = document.createElement('div');
+                div.id = 'loader-msg';
+                div.className = 'message bot-message';
+                div.innerHTML = "<pre>⏳ Please wait, analyzing<span class='loading-dots'></span></pre>";
+                messages.appendChild(div);
+                messages.scrollTo({ top: messages.scrollHeight, behavior: 'smooth' });
+            }
+        }
+        function hideLoader() {
+            const loader = document.getElementById('loader-msg');
+            if (loader) loader.remove();
+        }
+
+        function saveNote(predId) {
+            const textarea = document.getElementById('note_' + predId);
+            const display = document.getElementById('note_display_' + predId);
+            if (textarea && display) {
+                const note = textarea.value.trim();
+                if (note) {
+                    localStorage.setItem('note_' + predId, note);
+                    display.textContent = "Note: " + note;
+                    textarea.value = '';
+                }
+            }
+        }
+
+        function exportPredictionAsPDF(text, symbol) {
+            const win = window.open('', '', 'width=800,height=600');
+            win.document.write('<html><head><title>Prediction PDF</title></head><body>');
+            win.document.write('<pre style="font-family:monospace;font-size:1em;">' + text.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</pre>');
+            win.document.write('</body></html>');
+            win.document.close();
+            win.print();
+        }
+
+        function exportPredictionAsCSV(text, symbol) {
+            const lines = text.split('\n');
+            let csv = 'Field,Value\n';
+            for (let line of lines) {
+                const idx = line.indexOf(':');
+                if (idx > 0 && idx < 40) {
+                    const key = line.slice(0, idx).replace(/•/g, '').trim();
+                    const value = line.slice(idx + 1).trim();
+                    csv += `"${key}","${value}"\n`;
+                }
+            }
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `prediction_${symbol}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+        }
+
+        // Autofocus on input after sending
+        // (must be inside DOMContentLoaded or after messageInput is initialized)
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            } else if (e.key === 'ArrowUp' && !messageInput.value) {
+                messageInput.value = lastUserMessage;
+            }
+        });
+
+        function updateCurrentSymbol(symbol) {
+            currentSymbol = symbol;
+            const el = document.getElementById('currentSymbol');
+            if (symbol) {
+                el.textContent = "Current symbol: " + symbol;
+                el.style.display = '';
+                addToHistory(symbol);
+            } else {
+                el.textContent = "";
+                el.style.display = 'none';
+            }
+        }
+
+        // --- Analysis history ---
+        function addToHistory(symbol) {
+            symbol = symbol.trim().toUpperCase();
+            if (!symbol) return;
+            if (!historySymbols.includes(symbol)) {
+                historySymbols.unshift(symbol);
+                if (historySymbols.length > 5) historySymbols = historySymbols.slice(0, 5);
+            } else {
+                // Move to front
+                historySymbols = [symbol].concat(historySymbols.filter(s => s !== symbol));
+            }
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const bar = document.getElementById('historyBar');
+            const list = document.getElementById('historyList');
+            if (historySymbols.length === 0) {
+                bar.style.display = 'none';
+                list.innerHTML = '';
+                return;
+            }
+            bar.style.display = '';
+            list.innerHTML = historySymbols.map(sym =>
+                `<button onclick="historyRecall('${sym}')" style="margin:2px 4px;padding:4px 12px;border-radius:6px;border:1px solid var(--primary-color);background:var(--chat-bg);color:var(--primary-color);cursor:pointer;">${sym}</button>`
+            ).join('');
+        }
+
+        window.historyRecall = function(symbol) {
+            // Insert symbol into input and send
+            messageInput.value = symbol;
+            sendMessage();
+        };
+    </script>
+</body>
+</html>
